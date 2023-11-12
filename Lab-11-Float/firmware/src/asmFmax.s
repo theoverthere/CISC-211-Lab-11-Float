@@ -65,58 +65,7 @@ nanValue: .word 0x7FFFFFFF
  .type initVariables,%function
 initVariables:
     /* YOUR initVariables CODE BELOW THIS LINE! Don't forget to push and pop! */
-    /*enter function*/
-    push {r4-r11, LR}
-    
-    /*load all these labels into available registers*/
-    ldr r4, =f1          
-    ldr r5, =sb1
-    ldr r6, =biasedExp1
-    ldr r7, =exp1
-    ldr r8, =mant1
-    ldr r9, =f2
-    ldr r10, =sb2
-    
-    /*move zero into r12 for initialization purposes*/
-    mov r11, 0
-    
-    /*intialize all locations pointed to by register to zero*/
-    str r11, [r4]
-    str r11, [r5]
-    str r11, [r6]
-    str r11, [r7]
-    str r11, [r8]
-    str r11, [r9]
-    str r11, [r10]
-   
-    
-    /*load all these labels into available registers*/
-    ldr r4, =exp2
-    ldr r5, =mant2
-    ldr r6, =fMax
-    ldr r7, =signBitMax
-    ldr r8, =biasedExpMax
-    ldr r9, =expMax
-    ldr r10, =mantMax
-    
-    
-    /*intialize all locations pointed to by register to zero*/
-    str r11, [r4]
-    str r11, [r5]
-    str r11, [r6]
-    str r11, [r7]
-    str r11, [r8]
-    str r11, [r9]
-    str r11, [r10]
-    
-    ldr r4, =biasedExp2
-    str r11, [r4]
-    
-    /*exit function*/
-    pop {r4-r11, LR}
-    bx lr
-   
-    
+
     /* YOUR initVariables CODE ABOVE THIS LINE! Don't forget to push and pop! */
 
     
@@ -133,28 +82,6 @@ initVariables:
 .type getSignBit,%function
 getSignBit:
     /* YOUR getSignBit CODE BELOW THIS LINE! Don't forget to push and pop! */
-    /*enter the function*/
-    push {r4-r11, LR}
-    
-    ldr r4, [r0] /*load unpacked 32b float into r4*/
-    tst r4, 0x80000000 /*tst r4 with 0x80000000 to see if sign bit is turned on*/
-    bne negativeSign /*else, branch here*/
-    beq positiveSign /*if 0, float is positive, branch here*/
-    
-    positiveSign:
-    mov r10, 0 /*mov zero into r10*/
-    str r10, [r1] /*return positive sign bit*/
-    b exitFunction
-    
-    negativeSign:
-    mov r10, 1 /*mov zero into r10*/
-    str r10, [r1] /*return negative sign bit*/
-    
-    
-    exitFunction:
-    pop {r4-r11, LR}
-    bx LR
-    
 
     /* YOUR getSignBit CODE ABOVE THIS LINE! Don't forget to push and pop! */
     
@@ -182,20 +109,6 @@ getSignBit:
 .type getExponent,%function
 getExponent:
     /* YOUR getExponent CODE BELOW THIS LINE! Don't forget to push and pop! */
-    push {r4-r11, LR} /*enter the function*/
-    
-    ldr r4, [r0] /*load value pointed to by r0 (unpacked 32b float) to r4*/
-   
-    lsr r4, r4, 23 /*shift bits right by 23 to isolate 8 exponent bits*/
-    ror r4, r4, 8 /*rotate bits by 8, now sign bit is LSB*/
-    lsr r4, r4, 24 /*shift right again, this time by 24. exponent bits are now isolated in the 8 LSB's*/
-    
-    str r4, [r1] /*store biased exponent to address in r1*/
-    sub r4, r4, 127 /*subtract 127 from biased exponent to unbias it*/
-    str r4, [r2] /*store unbiased exponent to address in r2*/
-    
-    pop {r4-r11, LR} /*exit the function*/
-    bx lr
     
     /* YOUR getExponent CODE ABOVE THIS LINE! Don't forget to push and pop! */
    
@@ -214,16 +127,6 @@ getExponent:
 .type getMantissa,%function
 getMantissa:
     /* YOUR getMantissa CODE BELOW THIS LINE! Don't forget to push and pop! */
-    push {r4-r11, LR} /*enter the function*/
-    
-    ldr r4, [r0] /*load unpacked 32b float into r4*/
-    lsl r4, r4, 9 /*shift left r4 by 9 bits, making the mantissa occupy the 23 MSB's*/
-    lsr r4, r4, 9 /* shift r4 right by 9 bits, isolating the mantissa*/
-    add r4, r4, 0x800000
-    str r4, [r1] /*store the unpacked mantissa to location pointed to by r1*/
-    
-    pop {r4-r11, LR}
-    bx lr
     
     /* YOUR getMantissa CODE ABOVE THIS LINE! Don't forget to push and pop! */
    
@@ -265,202 +168,7 @@ asmFmax:
      */
 
     /* YOUR asmFmax CODE BELOW THIS LINE! VVVVVVVVVVVVVVVVVVVVV  */
-    push {r4-r11, LR}
-    bl initVariables
     
-    /*unpack value of r0 into f1*/
-    ldr r4, =f1
-    str r0, [r4]
-    /*unpack value of r1 into f2*/
-    ldr r4, =f2
-    str r1, [r4]
-    
-    
-    /*pop {r4-r11, LR}*/
-    /*get sign bit for float one*/
-    ldr r0, =f1
-    ldr r1, =sb1
-    bl getSignBit
-    
-    /*get sign bit for float two*/
-    ldr r0, =f2
-    ldr r1, =sb2
-    bl getSignBit
-    
-    
-    /*get exp for float one*/
-    ldr r0, =f1
-    ldr r1, =biasedExp1
-    ldr r2, =exp1
-    bl getExponent
-    
-    /*get exp for float two*/
-    ldr r0, =f2
-    ldr r1, =biasedExp2
-    ldr r2, =exp2
-    bl getExponent
-    
-    
-    /*get mantissa for float one*/
-    ldr r0, =f1
-    ldr r1, =mant1
-    bl getMantissa
-    
-    /*push {r4-r11, LR}*/
-    ldr r5, =biasedExp1
-    ldr r5, [r5]
-    ldr r1, =mant1
-    ldr r6, [r1]
-    cmp r5, 0
-    /*orrne r6, r6, 0x00800000 /*turn on the 23rd bit for mantissa conversion*/
-    str r6, [r1]
-   /* pop {r4-r11, LR}*/
-    
-    /*get mantissa for float two*/
-    ldr r0, =f2
-    ldr r1, =mant2
-    bl getMantissa
-    
-   /* push {r4-r11, LR}*/
-    ldr r5, =biasedExp2
-    ldr r5, [r5]
-    ldr r1, =mant2
-    ldr r6, [r1]
-    cmp r5, 0
-   /* orrne r6, r6, 0x00800000 /*turn on the 23rd bit for mantissa conversion*/
-    str r6, [r1]
-    
-    ldr r5, =f1
-    ldr r6, =f2
-    ldr r10, =0x7fffffff
-    cmp r5, r10
-    beq NaN
-    cmp r6, r10
-    beq NaN  
-    ldr r10, =0x7f800000
-    cmp r5, r10 
-    beq fp1Larger
-    cmp r6, r10
-    beq fp2Larger
-    ldr r10, =0xff800000
-    cmp r5, r10
-    beq fp2Larger
-    cmp r6, r10
-    beq fp1Larger
-    
-    ldr r7, =sb1
-    ldr r8, =sb2
-    ldr r9, [r7]
-    ldr r10, [r8]
-    cmp r10, r9
-    bmi fp2Larger
-    beq expCheck
-    bhi fp1Larger
-    
-    expCheck:
-    ldr r7, =exp1
-    ldr r8, =exp2
-    ldr r9, [r7]
-    ldr r10, [r8]
-    cmp r10, r9
-    bhi fp2Larger
-    beq mantissaCheck
-    blo fp1Larger
-    
-    mantissaCheck:
-    ldr r7, =mant1
-    ldr r8, =mant2
-    ldr r9, [r7]
-    ldr r10, [r8]
-    cmp r10, r9
-    bmi fp2Larger
-    bhi fp1Larger
-    
-    equalFp:
-    ldr r0, =fMax
-    ldr r1, [r5]
-    str r1, [r0]
-    ldr r1, =signBitMax
-    ldr r2, =sb1
-    ldr r3, [r2]
-    str r3, [r1]
-    
-    ldr r1, =biasedExpMax
-    ldr r2, =biasedExp1
-    ldr r3, [r2]
-    str r3, [r1]
-    
-    ldr r1, =expMax
-    ldr r2, =exp1
-    ldr r3, [r2]
-    str r3, [r1]
-    
-    ldr r1, =mantMax
-    ldr r2, =mant1
-    ldr r3, [r2]
-    str r3, [r1]
-    b finally
-    
-    fp1Larger:
-    ldr r0, =fMax
-    ldr r1, [r5]
-    str r1, [r0]
-    ldr r1, =signBitMax
-    ldr r2, =sb1
-    ldr r3, [r2]
-    str r3, [r1]
-    
-    ldr r1, =biasedExpMax
-    ldr r2, =biasedExp1
-    ldr r3, [r2]
-    str r3, [r1]
-    
-    ldr r1, =expMax
-    ldr r2, =exp1
-    ldr r3, [r2]
-    str r3, [r1]
-    
-    ldr r1, =mantMax
-    ldr r2, =mant1
-    ldr r3, [r2]
-    str r3, [r1]
-    b finally
-    
-    fp2Larger:
-    ldr r0, =fMax
-    ldr r1, [r6]
-    str r1, [r0]
-    
-    ldr r1, =signBitMax
-    ldr r2, =sb2
-    ldr r3, [r2]
-    str r3, [r1]
-    
-    ldr r1, =biasedExpMax
-    ldr r2, =biasedExp2
-    ldr r3, [r2]
-    str r3, [r1]
-    
-    ldr r1, =expMax
-    ldr r2, =exp2
-    ldr r3, [r2]
-    str r3, [r1]
-    
-    ldr r1, =mantMax
-    ldr r2, =mant2
-    ldr r3, [r2]
-    str r3, [r1]
-    b finally
-    
-    NaN:
-    ldr r0, =fMax
-    ldr r6, =0x7fffffff
-    str r6, [r0]
-    b finally
-    
-    finally:
-    pop {r4-r11, LR}
-    bx lr
     
     /* YOUR asmFmax CODE ABOVE THIS LINE! ^^^^^^^^^^^^^^^^^^^^^  */
 
