@@ -131,7 +131,7 @@ static uint32_t reinterpret_float(float f)
 }
 
 static float tc[][2] = {
-    {     1.0,                  2.0}, 
+    /*{     1.0,                  2.0}, */
     {    -3.1,                  -1.2}, 
     {     NAN,                  1.0}, 
     {    -1.0,                  NAN}, 
